@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.vite/
+.qa-engine-build/
+.qa-engine-build-125/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+.DS_Store

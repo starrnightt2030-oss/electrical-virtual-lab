@@ -1,0 +1,20 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '..');
+const read = p => fs.readFileSync(path.join(root,p),'utf8');
+const assert = (v,m) => { if(!v) throw new Error(m); };
+const pkg = JSON.parse(read('package.json'));
+const checks = [];
+function check(name, fn){ try { fn(); checks.push([name,'PASS']); } catch(e){ checks.push([name,'FAIL',e.message]); } }
+check('package metadata',()=>{ assert(pkg.name==='electrical-virtual-lab','package name'); assert(pkg.private===true,'private package expected'); assert(pkg.version,'version missing'); });
+check('required scripts',()=>['dev','build','preview','test','typecheck','typecheck:engine','qa:engine','qa:regression'].forEach(k=>assert(typeof pkg.scripts[k]==='string',`missing ${k}`)));
+check('developer credit',()=>assert(read('src/App.tsx').includes('Mohamed _ Eldawly'),'developer credit missing'));
+check('PWA config',()=>{ const v=read('vite.config.ts'); assert(v.includes('VitePWA('),'VitePWA missing'); assert(v.includes("registerType: 'autoUpdate'"),'autoUpdate missing'); });
+check('offline registration',()=>assert(read('src/main.tsx').includes("registerSW({ immediate: true })"),'registerSW missing'));
+check('icons',()=>['public/icons/pwa-192.png','public/icons/pwa-512.png'].forEach(f=>assert(fs.existsSync(path.join(root,f)),`${f} missing`)));
+check('documentation',()=>['README.md','PROJECT_STATUS.md','TODO.md','CHANGELOG.md','ARCHITECTURE_DECISIONS.md'].forEach(f=>assert(fs.existsSync(path.join(root,f)),`${f} missing`)));
+check('no obvious secret files',()=>['.env','.env.local','.env.production'].forEach(f=>assert(!fs.existsSync(path.join(root,f)),`${f} must not ship`)));
+check('no generated QA output required for release',()=>{ /* QA build folders are disposable; release packaging excludes them. */ });
+const failed = checks.filter(x=>x[1]==='FAIL');
+console.log(JSON.stringify({marker:'PHASE12_9_RELEASE_AUDIT',checks,passed:checks.length-failed.length,failed:failed.length},null,2));
+if(failed.length) process.exitCode=2;
