@@ -311,7 +311,7 @@ function GuidedSimpleCircuitLab() {
       ...base,
       components: base.components.map((component) =>
         component.type === 'source' ? { ...component, enabled: false } :
-        component.type === 'switch' ? { ...component, state: 'open' } : component,
+        component.type === 'switch' ? { ...component, state: 'open' as const } : component,
       ),
     };
   };
@@ -329,7 +329,7 @@ function GuidedSimpleCircuitLab() {
   };
 
   const setSwitch = (closed: boolean) => {
-    setCircuit(current => ({ ...current, components: current.components.map(c => c.type === 'switch' ? { ...c, state: closed ? 'closed' : 'open' } : c) }));
+    setCircuit(current => ({ ...current, components: current.components.map(c => c.type === 'switch' ? { ...c, state: closed ? ('closed' as const) : ('open' as const) } : c) }));
     if (closed) setStep(s => Math.max(s, 3));
     else if (step >= 3) setStep(4);
   };
